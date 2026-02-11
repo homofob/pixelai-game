@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PixelAi - P Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script type="module"> import { initializeApp } from ""; import { getFirestore, doc, getDoc, setDoc, updateDoc } from ""; const firebaseConfig = { apiKey: "AIzaSyDMgHvo7BVKkWBqLA0ixMHB2Zn1qZr2cu0", authDomain: "pixelaigame.firebaseapp.com", projectId: "pixelaigame", storageBucket: "pixelaigame.firebasestorage.app", messagingSenderId: "612539280987", appId: "1:612539280987:web:568b7f14a7e95caa1c197e" }; const app = initializeApp(firebaseConfig); const db = getFirestore(app); window.db = db; window.dbDoc = doc; window.dbGet = getDoc; window.dbSet = setDoc; window.dbUpdate = updateDoc; </script>
     <style>
         :root { --accent-green: #2ecc71; --bg-dark: #050505; }
         
@@ -153,6 +154,9 @@
     </div>
 
     <script>
+        async function loadUserData(wallet) { const docRef = window.dbDoc(window.db, "users", wallet.toLowerCase()); const docSnap = await window.dbGet(docRef); if (docSnap.exists()) { const data = docSnap.data(); balance = data.balance || 0; energy = data.energy || 10; } else { await window.dbSet(docRef, { balance: balance, energy: energy, lastSeen: Date.now() }); } updateUI(); }
+
+async function saveUserData() { if (!userWallet) return; const docRef = window.dbDoc(window.db, "users", userWallet.toLowerCase()); await window.dbUpdate(docRef, { balance: balance, energy: energy, lastSeen: Date.now() }); } setInterval(saveUserData, 30000);
         // --- ПАМ'ЯТЬ ---
         let balance = parseInt(localStorage.getItem('pai_balance')) || 0;
         let energy = parseInt(localStorage.getItem('pai_energy')) || 10;
@@ -242,14 +246,7 @@
             }
         }
 
-        async function connectWallet() {
-            if (window.ethereum) {
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                userWallet = accounts[0];
-                localStorage.setItem('pai_wallet', userWallet);
-                document.getElementById('walletBtn').innerText = userWallet.slice(0,6).toUpperCase() + "...";
-                updateUI();
-            }
+        async function connectWallet() { if (window.ethereum) { const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }); userWallet = accounts[0]; localStorage.setItem('pai_wallet', userWallet); document.getElementById('walletBtn').innerText = userWallet.slice(0,6).toUpperCase() + "..."; await loadUserData(userWallet); } }
         }
 
         // ПІКСЕЛЬНИЙ ДОЩ
