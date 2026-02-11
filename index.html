@@ -5,10 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PixelAi - P Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <script type="module"> import { initializeApp } from ""; import { getFirestore, doc, getDoc, setDoc, updateDoc } from ""; const firebaseConfig = { apiKey: "AIzaSyDMgHvo7BVKkWBqLA0ixMHB2Zn1qZr2cu0", authDomain: "pixelaigame.firebaseapp.com", projectId: "pixelaigame", storageBucket: "pixelaigame.firebasestorage.app", messagingSenderId: "612539280987", appId: "1:612539280987:web:568b7f14a7e95caa1c197e" }; const app = initializeApp(firebaseConfig); const db = getFirestore(app); window.db = db; window.dbDoc = doc; window.dbGet = getDoc; window.dbSet = setDoc; window.dbUpdate = updateDoc; </script>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDMgHvo7BVKkWBqLA0ixMHB2Zn1qZr2cu0", 
+            authDomain: "pixelaigame.firebaseapp.com", 
+            projectId: "pixelaigame", 
+            storageBucket: "pixelaigame.firebasestorage.app", 
+            messagingSenderId: "612539280987", 
+            appId: "1:612539280987:web:568b7f14a7e95caa1c197e" 
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Робимо функції глобальними, щоб звичайний <script> міг їх бачити
+        window.firebaseDB = { db, doc, getDoc, setDoc, updateDoc };
+        console.log("Firebase initialized!");
+    </script>
+
     <style>
         :root { --accent-green: #2ecc71; --bg-dark: #050505; }
-        
         body { 
             margin: 0; 
             background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9)), 
@@ -17,8 +37,6 @@
             color: #fff; font-family: 'Press Start 2P', cursive; text-align: center; min-height: 100vh;
             overflow-x: hidden;
         }
-        
-        /* ШАПКА */
         .header-container { width: 100%; height: 100px; position: relative; border-bottom: 3px solid var(--accent-green); background: #000; display: flex; align-items: center; overflow: hidden; }
         #pixelCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
         .header-content { width: 100%; display: grid; grid-template-columns: 180px 1fr 180px; align-items: center; padding: 0 20px; z-index: 5; }
@@ -26,34 +44,23 @@
         .logo-pixel { font-size: 26px; font-weight: bold; background: linear-gradient(90deg, #66ff00, #1eff00, #00ff00, #00ff59d1, #00ff95f4); background-size: 400%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: rainbow 10s linear infinite; }
         @keyframes rainbow { 0% { background-position: 0%; } 100% { background-position: 400%; } }
         .top-right-balance { position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.8); border: 2px solid var(--accent-green); padding: 10px; font-size: 10px; z-index: 100; }
-
-        /* НАВІГАЦІЯ */
         nav { display: flex; gap: 10px; justify-content: center; margin: 25px 0; z-index: 10; position: relative; flex-wrap: wrap; }
         nav button { background: #1a1a1a; border: 2px solid #444; color: #fff; padding: 12px 18px; font-family: 'Press Start 2P'; font-size: 10px; cursor: pointer; }
         nav button.active-nav { border-color: var(--accent-green); color: var(--accent-green); background: rgba(46, 204, 113, 0.1); }
-
-        /* ТАПАЛКА */
         .coin-container { position: relative; width: 180px; height: 180px; margin: 40px auto; }
         .main-coin { width: 100%; height: 100%; background: radial-gradient(circle, #2ecc71 0%, #1b5e20 100%); border: 6px solid #fff; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 80px; color: white; text-shadow: 4px 4px 0px #1b5e20; animation: pulse-glow-green 2s infinite alternate; user-select: none; }
         @keyframes pulse-glow-green { from { box-shadow: 0 0 20px rgba(46,204,113,0.4); transform: scale(1); } to { box-shadow: 0 0 50px rgba(46,204,113,0.8); transform: scale(1.05); } }
         .floating-text { position: absolute; color: var(--accent-green); font-size: 20px; pointer-events: none; animation: floatUp 0.8s ease-out forwards; z-index: 100; text-shadow: 2px 2px #000; }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
-
-        /* КОЛЕСО */
         .wheel-wrapper { position: relative; width: 210px; margin: 20px auto; }
         .wheel-pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); color: white; font-size: 30px; z-index: 20; }
         #wheel-container { width: 200px; height: 200px; border: 5px solid #fff; border-radius: 50%; overflow: hidden; transition: transform 3s cubic-bezier(0.1, 0, 0.1, 1); position: relative; }
-
-        /* БЛОКИ */
         .card { background: rgba(17, 17, 17, 0.9); border: 3px solid var(--accent-green); padding: 25px; margin-top: 15px; border-radius: 10px; }
         .container { display: none; padding: 20px; }
         .active { display: block; }
-
-        /* БУСТИ ТА СТЕЙКІНГ */
         .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 500px; margin: 0 auto; }
         .shop-item { border: 2px solid #333; background: rgba(22, 22, 22, 0.9); padding: 25px; min-height: 120px; }
         .buy-btn { width: 100%; background: var(--accent-green); color: #000; border: none; padding: 10px; font-family: 'Press Start 2P'; font-size: 9px; cursor: pointer; margin-top: 10px; font-weight: bold; }
-        
         input[type=range] { -webkit-appearance: none; width: 100%; background: #333; height: 15px; border: 2px solid var(--accent-green); margin: 20px 0; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 35px; width: 35px; background: var(--accent-green); cursor: pointer; border: 3px solid #fff; }
         .period-btn { background: #1a1a1a; border: 3px solid #444; color: #fff; padding: 20px 5px; font-family: 'Press Start 2P'; font-size: 11px; cursor: pointer; width: 32%; }
@@ -88,84 +95,43 @@
             <div class="main-coin" onclick="handleTap(event)">P</div>
         </div>
         <p>ENERGY: <span id="energy">10</span>/10</p>
-        <p style="font-size: 8px; color: var(--accent-green);">(+1 energy every 2h)</p>
     </div>
 
-    <div id="staking" class="container">
-        <div class="card">
-            <h2 style="color: var(--accent-green);">STAKING</h2>
-            <p>AMOUNT: <span id="stakeVal">0</span> PAI</p>
-            <input type="range" id="stakeRange" min="0" value="0" oninput="document.getElementById('stakeVal').innerText = this.value">
-            <div style="display:flex; justify-content: space-between; margin: 15px 0;">
-                <button class="period-btn" onclick="setPeriod(3, this)">3 MON</button>
-                <button class="period-btn" onclick="setPeriod(6, this)">6 MON</button>
-                <button class="period-btn" onclick="setPeriod(12, this)">12 MON</button>
-            </div>
-            <button class="buy-btn" style="padding: 15px;" onclick="confirmStake()">DEPOSIT PAI</button>
-            <div id="stakeHistory" style="font-size: 10px; margin-top: 25px; text-align: left; border-top: 1px solid #333; padding-top: 10px;"></div>
-        </div>
-    </div>
-
-    <div id="listing" class="container">
-        <h2 style="color: var(--accent-green);">TOKEN LISTING</h2>
-        <div class="card">
-            <p style="font-size: 12px; line-height: 1.6;">
-                PAI TOKEN LAUNCH: <span style="color: var(--accent-green);">DECEMBER 2026</span><br><br>
-                EXCHANGES: BINANCE, OKX, BYBIT<br><br>
-                INITIAL PRICE: $0.001
-            </p>
-        </div>
-    </div>
-
-    <div id="shop" class="container">
-        <div class="shop-grid">
-            <div class="shop-item"><h4 style="color: #cd7f32;">BRONZE</h4><p>+20 TAPS</p><button class="buy-btn" onclick="alert('Buy for $10')">$10</button></div>
-            <div class="shop-item"><h4 style="color: #c0c0c0;">SILVER</h4><p>+100 TAPS</p><button class="buy-btn" onclick="alert('Buy for $50')">$50</button></div>
-            <div class="shop-item"><h4 style="color: #ffd700;">GOLD</h4><p>+300 TAPS</p><button class="buy-btn" onclick="alert('Buy for $100')">$100</button></div>
-            <div class="shop-item"><h4 style="color: #e5e4e2;">PLATINUM</h4><p>+1000 TAPS</p><button class="buy-btn" onclick="alert('Buy for $300')">$300</button></div>
-            <div class="shop-item" style="grid-column: span 2; border-color: #b9f2ff;"><h4 style="color: #b9f2ff;">DIAMOND</h4><p>UNLIMITED</p><button class="buy-btn" style="background: #b9f2ff;" onclick="alert('Buy for $1000')">$1000</button></div>
-        </div>
-    </div>
-
-    <div id="daily" class="container">
-        <h2 style="color: var(--accent-green);">DAILY WHEEL</h2>
-        <div class="card">
-            <div class="wheel-wrapper">
-                <div class="wheel-pointer">▼</div>
-                <div id="wheel-container">
-                    <div style="position: absolute; width: 100%; height: 100%; background: conic-gradient(#2ecc71 0deg 36deg, #1b5e20 36deg 72deg, #2ecc71 72deg 108deg, #1b5e20 108deg 144deg, #2ecc71 144deg 180deg, #1b5e20 180deg 216deg, #2ecc71 216deg 252deg, #1b5e20 252deg 288deg, #2ecc71 288deg 324deg, #1b5e20 324deg 360deg);"></div>
-                </div>
-            </div>
-            <p id="spinResult">Win 1-10 PAI!</p>
-            <button id="spinBtn" class="buy-btn" onclick="spinWheel()">SPIN FOR FREE</button>
-        </div>
-    </div>
-
-    <div id="referral" class="container">
-        <h2 style="color: var(--accent-green);">REFERRAL</h2>
-        <div class="card">
-            <p style="font-size: 10px;">INVITE FRIENDS AND GET 10%!</p>
-            <div style="background: #000; padding: 15px; border: 1px dashed var(--accent-green); margin: 15px 0;">
-                <span id="refLink" style="font-size: 8px;">https://pixelai.p/ref=user777</span>
-            </div>
-            <button class="buy-btn" onclick="copyRef()">COPY LINK</button>
-            <p style="font-size: 10px; margin-top: 20px;">FRIENDS INVITED: <span id="refCount">0</span></p>
-        </div>
-    </div>
+    <div id="staking" class="container">... (твій код стейкінгу) ...</div>
 
     <script>
-        async function loadUserData(wallet) { const docRef = window.dbDoc(window.db, "users", wallet.toLowerCase()); const docSnap = await window.dbGet(docRef); if (docSnap.exists()) { const data = docSnap.data(); balance = data.balance || 0; energy = data.energy || 10; } else { await window.dbSet(docRef, { balance: balance, energy: energy, lastSeen: Date.now() }); } updateUI(); }
-
-async function saveUserData() { if (!userWallet) return; const docRef = window.dbDoc(window.db, "users", userWallet.toLowerCase()); await window.dbUpdate(docRef, { balance: balance, energy: energy, lastSeen: Date.now() }); } setInterval(saveUserData, 30000);
-        // --- ПАМ'ЯТЬ ---
+        // --- ПЕРЕМІННІ ---
         let balance = parseInt(localStorage.getItem('pai_balance')) || 0;
         let energy = parseInt(localStorage.getItem('pai_energy')) || 10;
-        let savedHistory = localStorage.getItem('pai_history') || "";
         let userWallet = localStorage.getItem('pai_wallet') || null;
 
-        // --- ТАП ТА ЕФЕКТ ---
+        // --- FIREBASE ФУНКЦІЇ ---
+        async function loadUserData(wallet) {
+            if (!window.firebaseDB) return; // Чекаємо завантаження Firebase
+            const { db, doc, getDoc, setDoc } = window.firebaseDB;
+            const docRef = doc(db, "users", wallet.toLowerCase());
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                balance = data.balance || 0;
+                energy = data.energy || 10;
+            } else {
+                await setDoc(docRef, { balance: balance, energy: energy, lastSeen: Date.now() });
+            }
+            updateUI();
+        }
+
+        async function saveUserData() {
+            if (!userWallet || !window.firebaseDB) return;
+            const { db, doc, updateDoc } = window.firebaseDB;
+            const docRef = doc(db, "users", userWallet.toLowerCase());
+            await updateDoc(docRef, { balance: balance, energy: energy, lastSeen: Date.now() });
+        }
+
+        // --- ТАПАЛКА ---
         function handleTap(e) {
-            if(!userWallet) { alert("Connect Wallet!"); return; }
+            if(!userWallet) { alert("Connect Wallet First!"); return; }
             if(energy > 0) {
                 balance++; energy--;
                 showPlusOne(e);
@@ -177,47 +143,39 @@ async function saveUserData() { if (!userWallet) return; const docRef = window.d
             const text = document.createElement('div');
             text.className = 'floating-text';
             text.innerText = '+1';
-            text.style.left = e.offsetX + 'px';
-            text.style.top = e.offsetY + 'px';
-            e.target.parentElement.appendChild(text);
+            text.style.left = e.clientX + 'px'; //clientX краще для позиціонування
+            text.style.top = e.clientY + 'px';
+            document.body.appendChild(text);
             setTimeout(() => text.remove(), 800);
         }
 
-        // --- ЕНЕРГІЯ ---
-        setInterval(() => {
-            if (energy < 10) { energy++; updateUI(); }
-        }, 7200000);
-
-        // --- UI ТА SAVE ---
         function updateUI() {
             document.getElementById('balance').innerText = balance;
             document.getElementById('balanceSide').innerText = balance;
             document.getElementById('energy').innerText = energy;
-            document.getElementById('stakeRange').max = balance;
-            document.getElementById('stakeHistory').innerHTML = savedHistory;
             localStorage.setItem('pai_balance', balance);
             localStorage.setItem('pai_energy', energy);
-            localStorage.setItem('pai_history', savedHistory);
         }
 
-        // --- КОЛЕСО ---
-        let lastSpinTime = localStorage.getItem('pai_last_spin') || 0;
-        function spinWheel() {
-            const now = Date.now();
-            if (now - lastSpinTime < 86400000) { alert("Once a day!"); return; }
-            const wheel = document.getElementById('wheel-container');
-            const deg = Math.floor(Math.random() * 360) + 1440;
-            wheel.style.transform = `rotate(${deg}deg)`;
-            setTimeout(() => {
-                const win = Math.floor(Math.random() * 10) + 1;
-                balance += win; lastSpinTime = Date.now();
-                localStorage.setItem('pai_last_spin', lastSpinTime);
-                document.getElementById('spinResult').innerText = `WON: ${win} PAI!`;
-                updateUI();
-            }, 3100);
+        // --- ГАМАНЕЦЬ ---
+        async function connectWallet() {
+            if (window.ethereum) {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    userWallet = accounts[0];
+                    localStorage.setItem('pai_wallet', userWallet);
+                    document.getElementById('walletBtn').innerText = userWallet.slice(0,6).toUpperCase() + "...";
+                    await loadUserData(userWallet);
+                } catch (err) {
+                    console.error("Wallet connection failed", err);
+                }
+            } else {
+                alert("Please install MetaMask!");
+            }
         }
 
-        // --- ІНШЕ ---
+        // --- ПІКСЕЛЬНИЙ ДОЩ ТА ІНШЕ ---
+        // (Тут залишаєш свої функції анімації та перемикання розділів)
         function showSection(id, btn) {
             document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-nav'));
@@ -225,31 +183,20 @@ async function saveUserData() { if (!userWallet) return; const docRef = window.d
             btn.classList.add('active-nav');
         }
 
-        function copyRef() {
-            navigator.clipboard.writeText(document.getElementById('refLink').innerText);
-            alert("Copied!");
-        }
+        // Автозбереження кожні 30 сек
+        setInterval(saveUserData, 30000);
 
-        let currentPeriod = 0;
-        function setPeriod(m, btn) {
-            currentPeriod = m;
-            document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('selected-green'));
-            btn.classList.add('selected-green');
-        }
-
-        function confirmStake() {
-            const val = parseInt(document.getElementById('stakeRange').value);
-            if(val > 0 && currentPeriod > 0) {
-                balance -= val;
-                savedHistory += `<p>• ${val} PAI | ${currentPeriod} Months</p>`;
-                updateUI();
+        // Ініціалізація при завантаженні
+        window.onload = () => {
+            if(userWallet) {
+                document.getElementById('walletBtn').innerText = userWallet.slice(0,6).toUpperCase() + "...";
+                // Невеликий тайм-аут, щоб Firebase встиг прокинутись
+                setTimeout(() => loadUserData(userWallet), 1000);
             }
-        }
+            updateUI();
+        };
 
-        async function connectWallet() { if (window.ethereum) { const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }); userWallet = accounts[0]; localStorage.setItem('pai_wallet', userWallet); document.getElementById('walletBtn').innerText = userWallet.slice(0,6).toUpperCase() + "..."; await loadUserData(userWallet); } }
-        }
-
-        // ПІКСЕЛЬНИЙ ДОЩ
+        // Твій код анімації канвасу...
         const canvas = document.getElementById('pixelCanvas');
         const ctx = canvas.getContext('2d');
         let pixels = [];
@@ -265,9 +212,6 @@ async function saveUserData() { if (!userWallet) return; const docRef = window.d
         for(let i=0; i<120; i++) pixels.push(new Pixel());
         function animate() { ctx.clearRect(0,0,canvas.width, 100); pixels.forEach(p => {p.update(); p.draw();}); requestAnimationFrame(animate); }
         animate();
-
-        if(userWallet) document.getElementById('walletBtn').innerText = userWallet.slice(0,6).toUpperCase() + "...";
-        updateUI();
     </script>
 </body>
 </html>
