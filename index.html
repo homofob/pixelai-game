@@ -118,11 +118,11 @@
 
     <div id="shop" class="container">
         <div class="shop-grid">
-            <div class="shop-item"><h4 style="color: #cd7f32;">BRONZE</h4><p>+20 TAPS</p><button class="buy-btn" onclick="alert('Buy for $10')">$10</button></div>
-            <div class="shop-item"><h4 style="color: #c0c0c0;">SILVER</h4><p>+100 TAPS</p><button class="buy-btn" onclick="alert('Buy for $50')">$50</button></div>
-            <div class="shop-item"><h4 style="color: #ffd700;">GOLD</h4><p>+300 TAPS</p><button class="buy-btn" onclick="alert('Buy for $100')">$100</button></div>
-            <div class="shop-item"><h4 style="color: #e5e4e2;">PLATINUM</h4><p>+1000 TAPS</p><button class="buy-btn" onclick="alert('Buy for $300')">$300</button></div>
-            <div class="shop-item" style="grid-column: span 2; border-color: #b9f2ff;"><h4 style="color: #b9f2ff;">DIAMOND</h4><p>UNLIMITED</p><button class="buy-btn" style="background: #b9f2ff;" onclick="alert('Buy for $1000')">$1000</button></div>
+            <div class="shop-item"><h4 style="color: #cd7f32;">BRONZE</h4><p>+20 TAPS</p><button class="buy-btn" onclick="buyWithUSDT(10, 'BRONZE')">$10</button></div>
+            <div class="shop-item"><h4 style="color: #c0c0c0;">SILVER</h4><p>+100 TAPS</p><button class="buy-btn" onclick="buyWithUSDT(50, 'SILVER')">$50</button></div>
+            <div class="shop-item"><h4 style="color: #ffd700;">GOLD</h4><p>+300 TAPS</p><button class="buy-btn" onclick="buyWithUSDT(100, 'GOLD')">$100</button></div>
+            <div class="shop-item"><h4 style="color: #e5e4e2;">PLATINUM</h4><p>+1000 TAPS</p><button class="buy-btn" onclick="buyWithUSDT(300, 'PLATINUM')">$300</button></div>
+            <div class="shop-item" style="grid-column: span 2; border-color: #b9f2ff;"><h4 style="color: #b9f2ff;">DIAMOND</h4><p>UNLIMITED</p><button class="buy-btn" style="background: #b9f2ff;" onclick="buyWithUSDT(1000, 'UNLIMITEDM')">$1000</button></div>
         </div>
     </div>
 
@@ -153,170 +153,237 @@
     </div>
 
     <script type="module">
-      // --- ПІДКЛЮЧЕННЯ FIREBASE ---
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyDMgHvo7BVKkWBqLA0ixMHB2Zn1qZr2cu0",
-    authDomain: "pixelaigame.firebaseapp.com",
-    projectId: "pixelaigame",
-    storageBucket: "pixelaigame.firebasestorage.app",
-    messagingSenderId: "612539280987",
-    appId: "1:612539280987:web:568b7f14a7e95caa1c197e"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// --- ПАМ'ЯТЬ ---
-let balance = parseInt(localStorage.getItem('pai_balance')) || 0;
-let energy = parseInt(localStorage.getItem('pai_energy')) || 10;
-let savedHistory = localStorage.getItem('pai_history') || "";
-let userWallet = localStorage.getItem('pai_wallet') || null;
-let currentPeriod = 0;
-
-// --- ФУНКЦІЇ ХМАРИ ---
-async function syncWithCloud() {
-    if (!userWallet) return;
-    try {
-        await setDoc(doc(db, "users", userWallet), {
-            balance: balance,
-            energy: energy,
-            history: savedHistory
-        }, { merge: true });
-    } catch (e) { console.error("Cloud Error:", e); }
-}
-
-async function loadFromCloud(wallet) {
-    const docRef = doc(db, "users", wallet);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-        const data = docSnap.data();
-        balance = data.balance || 0;
-        energy = data.energy || 10;
-        savedHistory = data.history || "";
-        window.updateUI(); 
-    }
-}
-
-// --- UI ТА ТАПИ ---
-window.updateUI = function() {
-    document.getElementById('balance').innerText = balance;
-    document.getElementById('balanceSide').innerText = balance;
-    document.getElementById('energy').innerText = energy;
-    if(document.getElementById('stakeRange')) document.getElementById('stakeRange').max = balance;
-    document.getElementById('stakeHistory').innerHTML = savedHistory;
+        // --- ПІДКЛЮЧЕННЯ FIREBASE ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     
-    localStorage.setItem('pai_balance', balance);
-    localStorage.setItem('pai_energy', energy);
-    localStorage.setItem('pai_history', savedHistory);
-    syncWithCloud();
-};
-
-window.handleTap = function(e) {
-    if(!userWallet) { alert("Connect Wallet!"); return; }
-    if(energy > 0) {
-        balance++; energy--;
-        showPlusOne(e);
-        window.updateUI();
-    }
-};
-
-function showPlusOne(e) {
-    const text = document.createElement('div');
-    text.className = 'floating-text';
-    text.innerText = '+1';
-    text.style.left = e.offsetX + 'px';
-    text.style.top = e.offsetY + 'px';
-    e.target.style.position = "relative";
-    e.target.appendChild(text);
-    setTimeout(() => text.remove(), 800);
+        const firebaseConfig = {
+            apiKey: "AIzaSyDMgHvo7BVKkWBqLA0ixMHB2Zn1qZr2cu0",
+            authDomain: "pixelaigame.firebaseapp.com",
+            projectId: "pixelaigame",
+            storageBucket: "pixelaigame.firebasestorage.app",
+            messagingSenderId: "612539280987",
+            appId: "1:612539280987:web:568b7f14a7e95caa1c197e"
+        };
+    
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+    
+        // ============================================================
+        // КРОК 1: ПРИВ'ЯЗКА ТВОГО ГАМАНЦЯ
+        // Встав сюди свою адресу з MetaMask (починається на 0x...)
+        // ============================================================
+        const adminWallet = "0xf9f04a5bc952ada42bf880bc4fa99bc09ad67d2d"; 
+        const usdtContractAddress = "0x55d398326f99059fF775485246999027B3197955"; // USDT у мережі BSC
+    
+        // --- ПАМ'ЯТЬ ГРИ ---
+        let balance = parseInt(localStorage.getItem('pai_balance')) || 0;
+        let maxEnergy = parseInt(localStorage.getItem('pai_max_energy')) || 10;
+// Якщо в пам'яті є збережена енергія — беремо її, якщо ні — тоді максимум
+let energy;
+if (localStorage.getItem('pai_energy') !== null) {
+    energy = parseInt(localStorage.getItem('pai_energy'));
+} else {
+    energy = maxEnergy;
 }
-// --- ЕНЕРГІЯ ---
-setInterval(() => {
-    if (energy < 10) { energy++; window.updateUI(); }
-}, 7200000);
-
-// --- КОЛЕСО ---
-let lastSpinTime = localStorage.getItem('pai_last_spin') || 0;
-window.spinWheel = function() {
-    const now = Date.now();
-    if (now - lastSpinTime < 86400000) { alert("Once a day!"); return; }
-    const wheel = document.getElementById('wheel-container');
-    const deg = Math.floor(Math.random() * 360) + 1440;
-    wheel.style.transform = `rotate(${deg}deg)`;
-    setTimeout(() => {
-        const win = Math.floor(Math.random() * 10) + 1;
-        balance += win; lastSpinTime = Date.now();
-        localStorage.setItem('pai_last_spin', lastSpinTime);
-        document.getElementById('spinResult').innerText = `WON: ${win} PAI!`;
-        window.updateUI();
-    }, 3100);
-};
-
-// --- СЕКЦІЇ ТА СТЕЙКІНГ ---
-window.showSection = function(id, btn) {
-    document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
-    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-nav'));
-    document.getElementById(id).classList.add('active');
-    btn.classList.add('active-nav');
-};
-
-window.copyRef = function() {
-    navigator.clipboard.writeText(document.getElementById('refLink').innerText);
-    alert("Copied!");
-};
-
-window.setPeriod = function(m, btn) {
-    currentPeriod = m;
-    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('selected-green'));
-    btn.classList.add('selected-green');
-};
-
-window.confirmStake = function() {
-    const val = parseInt(document.getElementById('stakeRange').value);
-    if(val > 0 && currentPeriod > 0) {
-        balance -= val;
-        savedHistory += `<p>• ${val} PAI | ${currentPeriod} Months</p>`;
-        window.updateUI();
-    }
-};
-
-window.connectWallet = async function() {
-    if (window.ethereum) {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        userWallet = accounts[0];
-        localStorage.setItem('pai_wallet', userWallet);
-        document.getElementById('walletBtn').innerText = userWallet.slice(0,6).toUpperCase() + "...";
-        await loadFromCloud(userWallet);
-        window.updateUI();
-    } else { alert("Install MetaMask!"); }
-};
-
-// --- ПІКСЕЛЬНИЙ ДОЩ ---
-const canvas = document.getElementById('pixelCanvas');
-const ctx = canvas.getContext('2d');
-let pixels = [];
-function resize() { canvas.width = window.innerWidth; canvas.height = 100; }
-window.addEventListener('resize', resize);
-resize();
-class Pixel {
-    constructor() { this.reset(); }
-    reset() { this.x = Math.random() * canvas.width; this.y = -10; this.size = Math.random() * 3 + 1; this.speed = Math.random() * 2 + 1; this.color = 'rgba(46, 204, 113, ' + Math.random() + ')'; }
-    update() { this.y += this.speed; if(this.y > 100) this.reset(); }
-    draw() { ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.size, this.size); }
+        let savedHistory = localStorage.getItem('pai_history') || "";
+        let userWallet = localStorage.getItem('pai_wallet') || null;
+        let currentPeriod = 0;
+    
+        // --- ФУНКЦІЇ ХМАРИ (Firebase) ---
+        async function syncWithCloud() {
+            if (!userWallet) return;
+            try {
+                await setDoc(doc(db, "users", userWallet), {
+                    balance: balance,
+                    energy: energy,
+                    maxEnergy: maxEnergy, // Зберігаємо ліміт у базі
+                    history: savedHistory
+                }, { merge: true });
+            } catch (e) { console.error("Firebase Sync Error:", e); }
+        }
+    
+        async function loadFromCloud(wallet) {
+            const docRef = doc(db, "users", wallet);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                balance = data.balance || 0;
+                maxEnergy = data.maxEnergy || 10; // Завантажуємо ліміт
+                // Беремо енергію з бази, якщо вона там є. Якщо немає — лишаємо ту, що вже в пам'яті
+if (data.energy !== undefined) {
+    energy = data.energy;
 }
-for(let i=0; i<120; i++) pixels.push(new Pixel());
-function animate() { ctx.clearRect(0,0,canvas.width, 100); pixels.forEach(p => {p.update(); p.draw();}); requestAnimationFrame(animate); }
-animate();
-
-// --- СТАРТ ---
-if(userWallet) {
-    document.getElementById('walletBtn').innerText = userWallet.slice(0,6).toUpperCase() + "...";
-    loadFromCloud(userWallet);
-}
-window.updateUI();
+                savedHistory = data.history || "";
+                window.updateUI(); 
+            }
+        }
+    
+        // --- ОНОВЛЕННЯ ЕКРАНУ ---
+        window.updateUI = function() {
+            document.getElementById('balance').innerText = balance;
+            document.getElementById('balanceSide').innerText = balance;
+            // Показуємо енергію як "Поточна / Максимальна"
+            document.getElementById('energy').innerText = energy + " / " + maxEnergy;
+            
+            if(document.getElementById('stakeRange')) {
+                document.getElementById('stakeRange').max = balance;
+            }
+            document.getElementById('stakeHistory').innerHTML = savedHistory;
+            
+            localStorage.setItem('pai_balance', balance);
+            localStorage.setItem('pai_energy', energy);
+            localStorage.setItem('pai_max_energy', maxEnergy);
+            localStorage.setItem('pai_history', savedHistory);
+            
+            syncWithCloud();
+        }
+    
+        // --- ЛОГІКА ТАПІВ ---
+        window.handleTap = function(e) {
+            if(!userWallet) { alert("Connect Wallet!"); return; }
+            if(energy > 0) {
+                balance++; 
+                energy--;
+                showPlusOne(e);
+                window.updateUI();
+            }
+        }
+    
+        function showPlusOne(e) {
+            const text = document.createElement('div');
+            text.className = 'floating-text';
+            text.innerText = '+1';
+            text.style.left = e.offsetX + 'px';
+            text.style.top = e.offsetY + 'px';
+            e.target.style.position = "relative";
+            e.target.appendChild(text);
+            setTimeout(() => text.remove(), 800);
+        }
+    
+        // --- КУПІВЛЯ ПАКЕТІВ (USDT) ---
+        window.buyWithUSDT = async function(amountUSDT, packetName) {
+            if (!userWallet) { alert("Connect Wallet first!"); return; }
+    
+            try {
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                if (chainId !== '0x38') {
+                    alert("Please switch MetaMask to BNB Smart Chain!");
+                    return;
+                }
+    
+                const amountHex = (BigInt(amountUSDT) * BigInt(10**18)).toString(16);
+                const data = '0xa9059cbb' + 
+                    adminWallet.replace('0x', '').toLowerCase().padStart(64, '0') + 
+                    amountHex.padStart(64, '0');
+    
+                const txHash = await window.ethereum.request({
+                    method: 'eth_sendTransaction',
+                    params: [{ to: usdtContractAddress, from: userWallet, data: data }],
+                });
+    
+                if (txHash) {
+                    alert("Payment sent! Upgrading your account...");
+    
+                    // ЛОГІКА: Новий ліміт = Базові 10 + Бонус пакету
+                    if (packetName === 'BRONZE') maxEnergy = 30;
+                    else if (packetName === 'SILVER') maxEnergy = 60;
+                    else if (packetName === 'GOLD') maxEnergy = 160;
+                    else if (packetName === 'PLATINUM') maxEnergy = 410;
+                    else if (packetName === 'DIAMOND') maxEnergy = 1010;
+    
+                    energy = maxEnergy; // Відразу відновлюємо до повного
+                    window.updateUI();
+                    alert("Success! Your daily limit is now " + maxEnergy);
+                }
+            } catch (error) {
+                alert("Transaction failed.");
+            }
+        }
+    
+        // --- ЕНЕРГІЯ (Відновлення) ---
+        setInterval(() => {
+            if (energy < maxEnergy) { 
+                energy++; 
+                window.updateUI(); 
+            }
+        }, 7200000);
+    
+        // --- ГАМАНЕЦЬ ---
+        window.connectWallet = async function() {
+            if (window.ethereum) {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    userWallet = accounts[0];
+                    localStorage.setItem('pai_wallet', userWallet);
+                    document.getElementById('walletBtn').innerText = userWallet.slice(0,6).toUpperCase() + "...";
+                    await loadFromCloud(userWallet);
+                    window.updateUI();
+                } catch (err) { console.error(err); }
+            } else { alert("Install MetaMask!"); }
+        }
+    
+        // --- ІНШЕ (Колесо, Стейкінг, Навігація) ---
+        window.showSection = function(id, btn) {
+            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-nav'));
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active-nav');
+        }
+    
+        let lastSpinTime = localStorage.getItem('pai_last_spin') || 0;
+        window.spinWheel = function() {
+            const now = Date.now();
+            if (now - lastSpinTime < 86400000) { alert("Once a day!"); return; }
+            const wheel = document.getElementById('wheel-container');
+            const deg = Math.floor(Math.random() * 360) + 1440;
+            wheel.style.transform = `rotate(${deg}deg)`;
+            setTimeout(() => {
+                const win = Math.floor(Math.random() * 10) + 1;
+                balance += win; lastSpinTime = Date.now();
+                localStorage.setItem('pai_last_spin', lastSpinTime);
+                document.getElementById('spinResult').innerText = `WON: ${win} PAI!`;
+                window.updateUI();
+            }, 3100);
+        }
+    
+        window.setPeriod = function(m, btn) {
+            currentPeriod = m;
+            document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('selected-green'));
+            btn.classList.add('selected-green');
+        }
+    
+        window.confirmStake = function() {
+            const val = parseInt(document.getElementById('stakeRange').value);
+            if(val > 0 && currentPeriod > 0) {
+                balance -= val;
+                savedHistory += `<p>• ${val} PAI | ${currentPeriod} Months</p>`;
+                window.updateUI();
+            }
+        }
+    
+        // --- ПІКСЕЛЬНИЙ ДОЩ ---
+        const canvas = document.getElementById('pixelCanvas');
+        const ctx = canvas.getContext('2d');
+        let pixels = [];
+        function resize() { canvas.width = window.innerWidth; canvas.height = 100; }
+        window.addEventListener('resize', resize);
+        resize();
+        class Pixel {
+            constructor() { this.reset(); }
+            reset() { this.x = Math.random() * canvas.width; this.y = -10; this.size = Math.random() * 3 + 1; this.speed = Math.random() * 2 + 1; this.color = 'rgba(46, 204, 113, ' + Math.random() + ')'; }
+            update() { this.y += this.speed; if(this.y > 100) this.reset(); }
+            draw() { ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.size, this.size); }
+        }
+        for(let i=0; i<120; i++) pixels.push(new Pixel());
+        function animate() { ctx.clearRect(0,0,canvas.width, 100); pixels.forEach(p => {p.update(); p.draw();}); requestAnimationFrame(animate); }
+        animate();
+    
+        if(userWallet) {
+            document.getElementById('walletBtn').innerText = userWallet.slice(0,6).toUpperCase() + "...";
+            loadFromCloud(userWallet);
+        }
+        window.updateUI();
     </script>
 </body>
 </html>
