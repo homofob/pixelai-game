@@ -311,18 +311,59 @@ if (data.energy !== undefined) {
         }, 7200000);
     
         // --- ГАМАНЕЦЬ ---
-        window.connectWallet = async function() {
-            if (window.ethereum) {
+       window.connectWallet = async function() {
+    // 1. Перевіряємо, чи є MetaMask (як розширення або вбудований браузер)
+    if (window.ethereum) {
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            userWallet = accounts[0];
+            localStorage.setItem('pai_wallet', userWallet);
+            document.getElementById('walletBtn').innerText = userWallet.slice(0,6).toUpperCase() + "...";
+            
+            // Отримуємо мережу (Chain ID)
+            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            
+            // Якщо це не BSC (0x38), пропонуємо переключитися
+            if (chainId !== '0x38') {
                 try {
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    userWallet = accounts[0];
-                    localStorage.setItem('pai_wallet', userWallet);
-                    document.getElementById('walletBtn').innerText = userWallet.slice(0,6).toUpperCase() + "...";
-                    await loadFromCloud(userWallet);
-                    window.updateUI();
-                } catch (err) { console.error(err); }
-            } else { alert("Install MetaMask!"); }
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0x38' }],
+                    });
+                } catch (switchError) {
+                    // Якщо мережа BSC не додана в гаманець, пропонуємо її додати
+                    if (switchError.code === 4902) {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: '0x38',
+                                chainName: 'Binance Smart Chain',
+                                nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                                rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                                blockExplorerUrls: ['https://bscscan.com/']
+                            }]
+                        });
+                    }
+                }
+            }
+
+            await loadFromCloud(userWallet);
+            window.updateUI();
+        } catch (err) { 
+            console.error("Помилка підключення:", err); 
         }
+    } else {
+        // 2. Якщо MetaMask не знайдено (користувач на телефоні у звичайному браузері)
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+            // Це посилання-магія: воно відкриває додаток MetaMask і твій сайт у ньому
+            const siteUrl = "pixelai-game.com"; 
+            window.location.href = `https://metamask.app.link/dapp/${siteUrl}`;
+        } else {
+            alert("Будь ласка, встановіть розширення MetaMask на ваш комп'ютер!");
+        }
+    }
+}
     
         // --- ІНШЕ (Колесо, Стейкінг, Навігація) ---
         window.showSection = function(id, btn) {
@@ -401,6 +442,7 @@ document.addEventListener("visibilitychange", () => {
     </script>
 </body>
 </html>
+
 
 
 
