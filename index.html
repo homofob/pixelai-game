@@ -237,7 +237,7 @@ if (data.energy !== undefined) {
             localStorage.setItem('pai_max_energy', maxEnergy);
             localStorage.setItem('pai_history', savedHistory);
             
-            syncWithCloud();
+        
         }
     
         // --- ЛОГІКА ТАПІВ ---
@@ -385,8 +385,22 @@ if (data.energy !== undefined) {
             loadFromCloud(userWallet);
         }
         window.updateUI();
+        // 1. Автоматичне збереження кожні 30 секунд
+setInterval(() => {
+    console.log("Auto-syncing with Cloud...");
+    syncWithCloud();
+}, 30000); // 30000 мілісекунд = 30 секунд
+
+// 2. Збереження, коли користувач згортає вкладку або перемикається на іншу
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+        console.log("Tab hidden. Saving data...");
+        syncWithCloud();
+    }
+});
     </script>
 </body>
 </html>
+
 
 
