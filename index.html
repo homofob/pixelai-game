@@ -439,9 +439,17 @@ document.addEventListener("visibilitychange", () => {
         syncWithCloud();
     }
 });
+        // Захист від правої кнопки миші
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+// Захист від клавіш розробника (F12, Ctrl+U тощо)
+document.onkeydown = function(e) {
+if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) || (e.ctrlKey && e.keyCode == 85)) return false;
+};
     </script>
 </body>
 </html>
+
 
 
 
